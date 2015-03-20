@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">CouponDunia</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="list_empty_view_text">Sorry, couldn\'t find any restaurants around you.</string>
+    <string name="gps_network_not_enabled">Location Services not enabled.</string>
+    <string name="open_location_settings">Open Location Settings</string>
+    <string name="Cancel">Cancel</string>
+    <string name="finding_restaurants">Finding restaurants around you..</string>
+</resources>
