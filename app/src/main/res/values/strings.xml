@@ -8,4 +8,5 @@
     <string name="open_location_settings">Open Location Settings</string>
     <string name="Cancel">Cancel</string>
     <string name="finding_restaurants">Finding restaurants around you..</string>
+    <string name="no_internet_text">No Internet Connection</string>
 </resources>

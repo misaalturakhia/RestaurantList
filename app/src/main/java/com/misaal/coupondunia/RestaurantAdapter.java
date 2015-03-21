@@ -1,14 +1,12 @@
 package com.misaal.coupondunia;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.util.Log;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +17,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /** An adapter that handles the data to be displayed in a list
@@ -29,12 +26,10 @@ import java.util.List;
  */
 public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
-    private static final String OFFERS = "Offers";
-
     private final Context mContext;
     private List<Restaurant> restaurantList;
     private Location mUserLocation;
-    private TextView distanceTV;
+    private boolean isNetworkConnected = false;
 
     /**
      * Constructor
@@ -46,13 +41,17 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
         this.mContext = context;
         this.restaurantList = restaurants;
         this.mUserLocation = userLocation;
+        this.isNetworkConnected = isNetworkConnected();
     }
-
 
     @Override
     public int getCount() {
-        return restaurantList.size();
+        if(restaurantList != null){
+            return restaurantList.size();
+        }else
+            return 0;
     }
+
 
     @Override
     public Restaurant getItem(int position) {
@@ -77,7 +76,9 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
         final ImageView logoIV = (ImageView) view.findViewById(R.id.restaurant_logo);
         String imageUrl = restaurant.getLogoUrl();
-        Picasso.with(mContext).load(imageUrl).fit().into(logoIV);
+        if(isNetworkConnected){ // download image only if the device has an active internet connection
+            Picasso.with(mContext).load(imageUrl).fit().into(logoIV);
+        }
 
         // set name of restaurant
         final TextView nameTV = (TextView)view.findViewById(R.id.restaurant_name);
@@ -85,7 +86,12 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
         // set the number of coupons/offers available for the restaurant
         final TextView offersTV = (TextView)view.findViewById(R.id.restaurant_offer_count);
-        offersTV.setText(restaurant.getNoOfCoupons() + " " + OFFERS);
+        int numberOfCoupons = restaurant.getNoOfCoupons();
+        if(numberOfCoupons == 1){
+            offersTV.setText(numberOfCoupons + " " + "Offer");
+        }else{
+            offersTV.setText(numberOfCoupons + " " + "Offers");
+        }
 
 
         final LinearLayout categoriesLayout = (LinearLayout) view.findViewById(R.id.restaurant_categories_layout);
@@ -100,7 +106,7 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
         }
 
         // calculate and set distance text
-        distanceTV = (TextView)view.findViewById(R.id.restaurant_distance);
+        TextView distanceTV = (TextView)view.findViewById(R.id.restaurant_distance);
         if(mUserLocation != null){
             double distance = calculateDistance(restaurant.getLatitude(), restaurant.getLongitude());
             String distanceTxt = createDistanceText(distance);
@@ -125,10 +131,10 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
      */
     private String createDistanceText(double distance) {
         String distanceTxt = null;
-        if(distance < 1){
+        if(distance < 1){ // if less than 1 km, display in meters
             double meterDistance = Math.rint(distance * 1000);
             distanceTxt = meterDistance + " m";
-        }else{
+        }else{ // otherwise display in kilometers upto one decimal place
             distance = Math.rint(distance * 10) / 10;
             distanceTxt = distance + " km";
         }
@@ -185,6 +191,7 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
             return true;
     }
 
+
     /** Returns the distance between 2 geo points in kilometers
      *
      * @param lat1
@@ -208,20 +215,6 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
 
     /**
-     * Returns the distance between 2 geographical points in metres
-     * @param lat1
-     * @param lon1
-     * @param lat2
-     * @param lon2
-     * @return
-     */
-    public long mDiffBetweenGeoPts(double lat1, double lon1, double lat2, double lon2){
-        final int metresPerKm = 1000;
-        return Math.round(kmDiffBetweenGeoPts(lat1, lon1, lat2, lon2) * metresPerKm);
-    }
-
-
-    /**
      * Converts degrees to radians
      * @param degrees
      * @return
@@ -229,6 +222,7 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
     private double deg2radians(double degrees) {
         return degrees * (Math.PI/180);
     }
+
 
 
 }

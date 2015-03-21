@@ -1,7 +1,11 @@
 package com.misaal.coupondunia;
 
+import android.content.Context;
 import android.location.Address;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -56,9 +61,9 @@ public class MainActivity extends ActionBarActivity {
         mListLoadingLayout.setVisibility(View.VISIBLE);
         // a textview that gets set as the empty view if there are no restaurants around or if there's
         // no internet
-        mEmptyListTV = (TextView)findViewById(R.id.list_empty_view);
+        mEmptyListTV = (TextView) findViewById(R.id.list_empty_view);
         // the listview that displays the restaurant data
-        restaurantsLV = (ListView)findViewById(R.id.restaurant_list);
+        restaurantsLV = (ListView) findViewById(R.id.restaurant_list);
         restaurantsLV.setEmptyView(mListLoadingLayout);
         // fetch the devices current location
         mLocation = fetchLocation();
@@ -66,50 +71,39 @@ public class MainActivity extends ActionBarActivity {
         try {
             // fetch the data to be displayed in the list
             mRestaurants = fetchData();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {}
+
+        if(mRestaurants == null){
+            mRestaurants = new ArrayList<>();
         }
 
-        // initialize the adapter, set it to the listview and sort by distance
-        mAdapter = new RestaurantAdapter(this, mRestaurants, mLocation);
-        restaurantsLV.setAdapter(mAdapter);
-        if(mLocation != null){
-            sortAdapter();
-        }else{
-            Toast.makeText(this, "Couldn't retrieve location!", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-
-    /**
-     * Initializes adapter, sets it as adapter to listview and sorts the adapter by distance of the
-     * restaurants from the device's current location
-     */
-    private void sortAdapter() {
-        mAdapter.sort(new Comparator<Restaurant>() {
-            @Override
-            public int compare(Restaurant restaurant, Restaurant restaurant2) {
-                double d1 = mAdapter.calculateDistance(restaurant.getLatitude(), restaurant.getLongitude());
-                double d2 = mAdapter.calculateDistance(restaurant2.getLatitude(), restaurant2.getLongitude());
-                return Double.compare(d1, d2);
+        if(mRestaurants != null && !mRestaurants.isEmpty()){
+            // initialize the adapter, set it to the listview and sort by distance
+            mAdapter = new RestaurantAdapter(this, mRestaurants, mLocation);
+            restaurantsLV.setAdapter(mAdapter);
+            if(mLocation != null){
+                sortAdapter();
+            }else{
+                Toast.makeText(this, "Couldn't retrieve location!", Toast.LENGTH_SHORT).show();
             }
-        });
-    }
-
-
-    /** Store the data in the SQLite database
-     *
-     * @param restaurants
-     */
-    private void storeData(List<Restaurant> restaurants) {
-        StoreDBDataTask task = new StoreDBDataTask(this, restaurants);
-        task.execute();
+        }
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
+        // stop the loading progress bar and display text saying that there is no internet
+        if(!isNetworkConnected()){
+            mListLoadingLayout.setVisibility(View.GONE);
+            mEmptyListTV.setText(getResources().getString(R.string.no_internet_text));
+            restaurantsLV.setEmptyView(mEmptyListTV);
+            return;
+        }else{
+            mEmptyListTV.setText(getResources().getString(R.string.list_empty_view_text));
+        }
+
+
         // tries to find location if it hasn't already been found. Sets up the adapter again and sorts
         // by distance
         if(mLocation == null){
@@ -120,6 +114,34 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(this, "Couldn't get your Location", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+
+    /**
+     * Initializes adapter, sets it as adapter to listview and sorts the adapter by distance of the
+     * restaurants from the device's current location
+     */
+    private void sortAdapter() {
+        if(mAdapter != null && mAdapter.getCount() > 1){
+            mAdapter.sort(new Comparator<Restaurant>() {
+                @Override
+                public int compare(Restaurant restaurant, Restaurant restaurant2) {
+                    double d1 = mAdapter.calculateDistance(restaurant.getLatitude(), restaurant.getLongitude());
+                    double d2 = mAdapter.calculateDistance(restaurant2.getLatitude(), restaurant2.getLongitude());
+                    return Double.compare(d1, d2);
+                }
+            });
+        }
+    }
+
+
+    /** Store the data in the SQLite database
+     *
+     * @param restaurants
+     */
+    private void storeData(List<Restaurant> restaurants) {
+        StoreDBDataTask task = new StoreDBDataTask(this, restaurants);
+        task.execute();
     }
 
     /** Fetch the current location of the device
@@ -148,12 +170,12 @@ public class MainActivity extends ActionBarActivity {
      * @param location : current location of the user
      */
     private void setUserLocationText(LocationService service, Location location) {
-        if(location != null){
+        if(location != null && isNetworkConnected()){
             Address address = null;
             try {
                 address = service.getAddress(this, location.getLatitude(), location.getLongitude());
             } catch (IOException e) {
-                e.printStackTrace();
+                return;
             }
             if(address != null){
                 String area = address.getSubLocality();
@@ -191,5 +213,19 @@ public class MainActivity extends ActionBarActivity {
         }
         return restaurants;
     }
+
+    /**
+     * Checks if the phone has any active network connection and returns true or false
+     * @return
+     */
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null) {
+            return false;// There are no active networks.
+        } else
+            return true;
+    }
+
 
 }

@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -42,14 +43,9 @@ public class FetchNetDataTask extends AsyncTask<Void, Void, List<Restaurant>> {
     protected void onPreExecute() {
         // check if the device is connected to the internet
         if(!isNetworkConnected()){
+            Toast.makeText(mContext, "Please check your internet connection", Toast.LENGTH_SHORT).show();
             cancel(true); // if not connected cancel the task
         }
-    }
-
-
-    @Override
-    protected void onCancelled() { // display a toast if the task was cancelled
-        Toast.makeText(mContext, "Please check your internet connection", Toast.LENGTH_SHORT).show();
     }
 
 
