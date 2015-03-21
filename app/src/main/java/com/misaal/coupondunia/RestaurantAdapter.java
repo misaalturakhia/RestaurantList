@@ -77,7 +77,7 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
         final ImageView logoIV = (ImageView) view.findViewById(R.id.restaurant_logo);
         String imageUrl = restaurant.getLogoUrl();
-        Picasso.with(mContext).load(imageUrl).into(logoIV);
+        Picasso.with(mContext).load(imageUrl).fit().into(logoIV);
 
         // set name of restaurant
         final TextView nameTV = (TextView)view.findViewById(R.id.restaurant_name);
@@ -89,6 +89,10 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
 
 
         final LinearLayout categoriesLayout = (LinearLayout) view.findViewById(R.id.restaurant_categories_layout);
+        // clears any previously added views to this layout
+        if(categoriesLayout.getChildCount() > 0){
+            categoriesLayout.removeAllViews();
+        }
         // programmatically adding layouts that display each category.
         List<String> categories = restaurant.getCategories();
         for(String category : categories){
@@ -101,6 +105,8 @@ public class RestaurantAdapter extends ArrayAdapter<Restaurant>{
             double distance = calculateDistance(restaurant.getLatitude(), restaurant.getLongitude());
             String distanceTxt = createDistanceText(distance);
             distanceTV.setText(distanceTxt);
+        }else{
+            distanceTV.setText("???");
         }
 
         // set area text

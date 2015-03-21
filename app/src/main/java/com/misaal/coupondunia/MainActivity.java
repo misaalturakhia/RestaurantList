@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -19,12 +20,12 @@ import java.util.concurrent.ExecutionException;
  * Displays a list of restaurants ordered by proximity to the user's current mLocation.
  *
  * NOTES : -
- * Not using Picasso for downloading images from a url on purpose.
  *
- * I am storing the restaurant details in the SQLite database because i think the task needs me to.
+ * I am storing the restaurant details in the SQLite database because i think the task needs me to
+ * (emphasis on efficient storage).
  * However i believe for such an application there is no need to save the data to the database because
- * it changes frequently (according to mLocation) and is more efficient making calls to the server and
- * storing the data in Java objects as long as it is required.
+ * it changes frequently (according to device location) and is more efficient making calls to the server and
+ * storing the data in Java objects for as long as it is required.
  *
  *
  *
@@ -47,30 +48,36 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // text view at the top of the activity that shows the users current location (area)
         mUserLocationTV = (TextView)findViewById(R.id.user_location);
-
-
+        // the initial empty view of the listview which shows a progress bar and a textview telling
+        // the user that the application is loading the data
         mListLoadingLayout = (LinearLayout)findViewById(R.id.list_loading_layout);
         mListLoadingLayout.setVisibility(View.VISIBLE);
-
+        // a textview that gets set as the empty view if there are no restaurants around or if there's
+        // no internet
         mEmptyListTV = (TextView)findViewById(R.id.list_empty_view);
-
-
+        // the listview that displays the restaurant data
         restaurantsLV = (ListView)findViewById(R.id.restaurant_list);
         restaurantsLV.setEmptyView(mListLoadingLayout);
-
+        // fetch the devices current location
         mLocation = fetchLocation();
 
         try {
+            // fetch the data to be displayed in the list
             mRestaurants = fetchData();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // initialize the adapter, set it to the listview and sort by distance
+        mAdapter = new RestaurantAdapter(this, mRestaurants, mLocation);
+        restaurantsLV.setAdapter(mAdapter);
         if(mLocation != null){
-            setUpAdapter();
+            sortAdapter();
+        }else{
+            Toast.makeText(this, "Couldn't retrieve location!", Toast.LENGTH_SHORT).show();
         }
-
     }
 
 
@@ -78,9 +85,7 @@ public class MainActivity extends ActionBarActivity {
      * Initializes adapter, sets it as adapter to listview and sorts the adapter by distance of the
      * restaurants from the device's current location
      */
-    private void setUpAdapter() {
-        mAdapter = new RestaurantAdapter(this, mRestaurants, mLocation);
-        restaurantsLV.setAdapter(mAdapter);
+    private void sortAdapter() {
         mAdapter.sort(new Comparator<Restaurant>() {
             @Override
             public int compare(Restaurant restaurant, Restaurant restaurant2) {
@@ -105,13 +110,19 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // tries to find location if it hasn't already been found. Sets up the adapter again and sorts
+        // by distance
         if(mLocation == null){
             mLocation = fetchLocation();
-            setUpAdapter();
+            if(mLocation != null){
+                sortAdapter();
+            }else{
+                Toast.makeText(this, "Couldn't get your Location", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
-    /** Fetch the current mLocation of the user
+    /** Fetch the current location of the device
      *
      * @return
      */
@@ -153,23 +164,24 @@ public class MainActivity extends ActionBarActivity {
 
 
     /**
-     * Fetches the data of the restaurant by downloading the JSON from the URL
-     * @return
+     * Fetches the data of the restaurant by retrieving the data from the database or by downloading
+     * the JSON from the URL if the database is empty
+     * @return : List<Restaurant> data
      */
     private List<Restaurant> fetchData() throws ExecutionException, InterruptedException {
         List<Restaurant> restaurants = null;
-
-        FetchDBData dbTask = new FetchDBData(this);
+        // try to fetch the data from the database
+        FetchDBDataTask dbTask = new FetchDBDataTask(this);
         dbTask.execute();
         restaurants = dbTask.get();
-
+        // if the database has no data fetch from the URL
         if(restaurants.isEmpty()){
-            FetchNetworkDataTask task = new FetchNetworkDataTask(this);
+            FetchNetDataTask task = new FetchNetDataTask(this);
             task.execute();
             restaurants = task.get();
+            // store it in the database
             storeData(restaurants);
         }
-
 
         // change from progress bar to empty view that displays that nothing was found
         if(restaurants == null || restaurants.size() < 1){

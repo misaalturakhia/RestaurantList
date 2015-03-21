@@ -9,9 +9,9 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:orientation="horizontal"
-        android:layout_weight="0.7">
+        android:layout_weight="1">
 
         <ImageView
             android:layout_width="match_parent"
@@ -71,41 +71,42 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:gravity="start|center"
         android:orientation="horizontal"
         android:id="@+id/restaurant_categories_layout"
         >
 
-        </LinearLayout>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center|start">
 
         <ImageView
-            android:layout_width="15dp"
-            android:layout_height="15dp"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
             android:src="@drawable/location_24"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/restaurant_distance"
-            android:layout_margin="@dimen/list_small_text_margin"
+            android:layout_marginLeft="@dimen/list_small_text_margin"
+            android:layout_marginRight="@dimen/list_small_text_margin"
             android:text="DISTANCE"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/restaurant_area"
-            android:layout_margin="@dimen/list_small_text_margin"
+            android:layout_marginLeft="@dimen/list_small_text_margin"
+            android:layout_marginRight="@dimen/list_small_text_margin"
             android:text="AREA"/>
 
     </LinearLayout>
+
 
 </LinearLayout>

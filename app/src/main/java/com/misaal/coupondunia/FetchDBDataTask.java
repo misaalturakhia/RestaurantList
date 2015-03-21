@@ -9,11 +9,11 @@ import java.util.List;
  * database on the phone
  * Created by Misaal on 20/03/2015.
  */
-public class FetchDBData extends AsyncTask<Void, Void, List<Restaurant>> {
+public class FetchDBDataTask extends AsyncTask<Void, Void, List<Restaurant>> {
 
     private final Context mContext;
 
-    public FetchDBData(Context context){
+    public FetchDBDataTask(Context context){
         this.mContext = context;
     }
 

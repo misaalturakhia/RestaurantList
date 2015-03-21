@@ -21,9 +21,9 @@ import java.util.List;
  * read, parsed and the needed data is extracted into a List<Restaurant>
  * Created by Misaal on 19/03/2015.
  */
-public class FetchNetworkDataTask extends AsyncTask<Void, Void, List<Restaurant>> {
+public class FetchNetDataTask extends AsyncTask<Void, Void, List<Restaurant>> {
 
-    private static final String LOG_TAG = FetchNetworkDataTask.class.getSimpleName();
+    private static final String LOG_TAG = FetchNetDataTask.class.getSimpleName();
     private static final String DATA_URL = "http://staging.couponapitest.com/task_data.txt";
     private static final int TIMEOUT = 15000; // 15 SECONDS
     private final Context mContext;
@@ -33,7 +33,7 @@ public class FetchNetworkDataTask extends AsyncTask<Void, Void, List<Restaurant>
      * Constructor
      * @param context : Context
      */
-    public FetchNetworkDataTask(Context context){
+    public FetchNetDataTask(Context context){
         this.mContext = context;
     }
 

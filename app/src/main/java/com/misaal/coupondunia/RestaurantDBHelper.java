@@ -167,6 +167,7 @@ public class RestaurantDBHelper extends SQLiteOpenHelper {
             restaurantList.add(new Restaurant(name, url, coupons, categories, latitude, longitude, area));
             res.moveToNext();
         }
+        db.close();
         return restaurantList;
     }
 
