@@ -20,6 +20,8 @@
             android:layout_marginRight="@dimen/list_item_padding"
             android:layout_marginEnd="@dimen/list_item_padding"
             android:padding="1dp"
+            android:scaleType="centerCrop"
+            android:cropToPadding="true"
             android:background="@drawable/rectangle"
             />
 
